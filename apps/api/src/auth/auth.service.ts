@@ -1,26 +1,45 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UsersService } from 'src/users/users.service';
+import { LoginDto } from './dto/login.dto';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async login(loginDto: LoginDto) {
+    const user = await this.usersService.findOneByEmail(loginDto.email);
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    if (!user) {
+      throw new UnauthorizedException();
+    }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    const localAuth = user.authProviders.find(
+      (provider) => provider.provider === 'local',
+    );
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    if (!localAuth || !localAuth.password) {
+      throw new UnauthorizedException();
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      localAuth.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException();
+    }
+
+    return {
+      access_token: this.jwtService.sign({
+        sub: user.id,
+        email: user.email,
+      }),
+    };
   }
 }

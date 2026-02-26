@@ -1,0 +1,14 @@
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: './tsconfig.json',
+  },
+  plugins: ['@typescript-eslint'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+  rules: {
+    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unsafe-assignment': 'warn',
+    '@typescript-eslint/no-unsafe-call': 'warn',
+    '@typescript-eslint/no-unsafe-member-access': 'warn',
+  },
+};
