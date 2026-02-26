@@ -19,7 +19,7 @@ export class UsersService {
     return this.usersRepo.find();
   }
 
-  async findOne(id: number) {
+  async findOneById(id: number) {
     const user = (await this.usersRepo.findOneBy({ id })) || null;
 
     if (user === null) {
@@ -27,6 +27,13 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async findOneByEmail(email: string) {
+    return this.usersRepo.findOne({
+      where: { email },
+      relations: ['authProviders'],
+    });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
