@@ -1,9 +1,12 @@
 import { Exclude } from 'class-transformer';
+import { AuthProvider } from 'src/auth/entities/auth.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity('users')
@@ -20,13 +23,12 @@ export class User {
   @Column({ type: 'varchar', length: 50, unique: true })
   email: string;
 
-  @Exclude()
-  @Column({ type: 'varchar', length: 50 })
-  password: string;
-
   @CreateDateColumn()
   created_at: Date;
 
-  @CreateDateColumn()
+  @UpdateDateColumn()
   modified_at: Date;
+
+  @OneToMany(() => AuthProvider, (auth) => auth.user)
+  authProviders: AuthProvider[];
 }
