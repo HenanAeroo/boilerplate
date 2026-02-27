@@ -15,9 +15,9 @@ export class AuthProvider {
 
   @Column({
     type: 'enum',
-    enum: ['local', 'google', 'github'],
+    enum: ['local', 'google'],
   })
-  provider: 'local' | 'google' | 'github';
+  provider: 'local' | 'google';
 
   @Column({ type: 'varchar', nullable: true })
   provider_id: string;

@@ -21,6 +21,15 @@ export class AuthService {
     const localAuth = user.authProviders.find(
       (provider) => provider.provider === 'local',
     );
+    const oauthAuth = user.authProviders.find(
+      (provider) => provider.provider !== 'local',
+    );
+
+    if (oauthAuth && !localAuth) {
+      throw new UnauthorizedException(
+        `Please log in using your ${oauthAuth.provider} account.`,
+      );
+    }
 
     if (!localAuth || !localAuth.password) {
       throw new UnauthorizedException();
