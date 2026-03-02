@@ -1,46 +1,82 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { PrismaService } from 'prisma/prisma.service';
+import { Prisma, User } from 'generated/prisma/client';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private usersRepo: Repository<User>) {
-    this.usersRepo = usersRepo;
-  }
+  constructor(private prisma: PrismaService) {}
+
   async create(createUserDto: CreateUserDto) {
-    const user = this.usersRepo.create(createUserDto);
-    return await this.usersRepo.save(user);
+    return this.prisma.user.create({ data: createUserDto });
   }
 
-  async findAll() {
-    return this.usersRepo.find();
-  }
-
-  async findOneById(id: number) {
-    const user = (await this.usersRepo.findOneBy({ id })) || null;
-
-    if (user === null) {
-      throw new UnauthorizedException('User not found');
-    }
-
-    return user;
-  }
-
-  async findOneByEmail(email: string) {
-    return this.usersRepo.findOne({
-      where: { email },
-      relations: ['authProviders'],
+  async createWithProvider(
+    createUserDto: CreateUserDto & { provider: string },
+    data: Prisma.AuthProviderCreateWithoutUserInput,
+  ) {
+    return await this.prisma.user.create({
+      data: {
+        ...createUserDto,
+        authProviders: {
+          create: {
+            provider: data.provider,
+            provider_id: data.provider_id,
+            password: data.password,
+            created_at: data.created_at,
+          },
+        },
+      },
+      include: { authProviders: true },
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    return this.usersRepo.update(id, updateUserDto);
+  async findAll(params: {
+    skip?: number;
+    take?: number;
+    cursor?: Prisma.UserWhereUniqueInput;
+    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.UserOrderByWithRelationInput;
+  }): Promise<User[]> {
+    return this.prisma.user.findMany({
+      skip: params.skip,
+      take: params.take,
+      cursor: params.cursor,
+      where: params.where,
+      orderBy: params.orderBy,
+    });
   }
 
-  async remove(id: number) {
-    return await this.usersRepo.delete(id);
+  async findOneById(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: userWhereUniqueInput,
+      include: { authProviders: true },
+    });
+  }
+
+  async findOneByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+      include: { authProviders: true },
+    });
+  }
+
+  async update(params: {
+    where: Prisma.UserWhereUniqueInput;
+    data: Prisma.UserUpdateInput;
+  }): Promise<User> {
+    const { where, data } = params;
+    return this.prisma.user.update({
+      data,
+      where,
+    });
+  }
+
+  async remove(where: Prisma.UserWhereUniqueInput): Promise<User> {
+    return this.prisma.user.delete({
+      where,
+    });
   }
 }
