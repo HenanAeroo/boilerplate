@@ -5,22 +5,22 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider      = "prisma-client"
+  provider      = "prisma-client-js"
   output        = "../generated/prisma"
-  moduleFormat  = "cjs"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
-  id          Int            @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
+  email       String   @unique @db.VarChar(255)
   first_name  String?
   last_name   String?
-  email       String         @unique
-  created_at  DateTime       @default(now())
-  modified_at DateTime       @updatedAt
+
+  created_at  DateTime @default(now())
+  modified_at DateTime @updatedAt
 
   authProviders AuthProvider[]
 }
@@ -40,4 +40,7 @@ model AuthProvider {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   created_at  DateTime @default(now())
+
+  @@unique([provider, provider_id])
+  @@unique([userId, provider])
 }

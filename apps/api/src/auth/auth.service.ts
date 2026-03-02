@@ -8,6 +8,7 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { Provider } from 'generated/prisma';
 
 @Injectable()
 export class AuthService {
@@ -16,83 +17,95 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  private signToken(user: { id: number; email: string }) {
+    return {
+      access_token: this.jwtService.sign({
+        sub: user.id,
+        email: user.email,
+      }),
+    };
+  }
+
   async registerLocal(dto: CreateUserDto) {
     const existing = await this.usersService.findOneByEmail(dto.email);
-    if (existing) throw new ConflictException('Email already in use');
+    if (existing) {
+      throw new ConflictException('Email already in use');
+    }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    return this.usersService.createWithProvider({
-      ...dto,
-      provider: 'local',
-      password: hashedPassword,
+    const user = await this.usersService.create({
+      email: dto.email,
+      first_name: dto.first_name,
+      last_name: dto.last_name,
+      authProviders: {
+        create: {
+          provider: Provider.local,
+          password: hashedPassword,
+        },
+      },
     });
+
+    return this.signToken(user);
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.usersService.findOneByEmail(loginDto.email);
+  async login(dto: LoginDto) {
+    const user = await this.usersService.findOneByEmail(dto.email);
 
     if (!user) {
       throw new UnauthorizedException();
     }
 
     const localAuth = user.authProviders.find(
-      (provider) => provider.provider === 'local',
-    );
-    const oauthAuth = user.authProviders.find(
-      (provider) => provider.provider !== 'local',
+      (p) => p.provider === Provider.local,
     );
 
-    if (oauthAuth && !localAuth) {
+    if (!localAuth || !localAuth.password) {
       throw new UnauthorizedException(
-        `Please log in using your ${oauthAuth.provider} account.`,
+        'Please log in using your OAuth provider.',
       );
     }
 
-    if (!localAuth || !localAuth.password) {
+    const isValid = await bcrypt.compare(dto.password, localAuth.password);
+
+    if (!isValid) {
       throw new UnauthorizedException();
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      localAuth.password,
-    );
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException();
-    }
-
-    return {
-      access_token: this.jwtService.sign({
-        sub: user.id,
-        email: user.email,
-      }),
-    };
+    return this.signToken(user);
   }
 
-  async oauthLogin(oauthProfile: {
-    email: string;
-    first_name?: string;
-    last_name?: string;
-  }) {
-    let user = await this.usersService.findOneByEmail(oauthProfile.email);
+  async oauthLogin(profile: { email: string }) {
+    const user = await this.usersService.findOneByEmail(profile.email);
 
     if (!user) {
-      await this.usersService.createWithProvider({
-        email: oauthProfile.email,
-        provider: 'google',
-        first_name: oauthProfile.first_name || '',
-        last_name: oauthProfile.last_name || '',
-        password: null,
+      await this.usersService.create({
+        email: profile.email,
+        authProviders: {
+          create: {
+            provider: Provider.google,
+            provider_id: profile.email,
+            password: null,
+          },
+        },
       });
-      user = await this.usersService.findOneByEmail(oauthProfile.email);
+    } else {
+      const hasGoogle = user.authProviders.some(
+        (p) => p.provider === Provider.google,
+      );
+
+      if (!hasGoogle) {
+        await this.usersService.addProvider(user.id, {
+          provider: Provider.google,
+          provider_id: profile.email,
+        });
+      }
     }
 
-    return {
-      access_token: this.jwtService.sign({
-        sub: user.id,
-        email: user.email,
-      }),
-    };
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    return this.signToken(user);
   }
 }

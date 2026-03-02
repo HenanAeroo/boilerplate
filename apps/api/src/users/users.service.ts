@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PrismaService } from 'prisma/prisma.service';
-import { Prisma, User } from 'generated/prisma/client';
+import { Prisma, User } from '../../generated/prisma/';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUserDto: CreateUserDto) {
-    return this.prisma.user.create({ data: createUserDto });
+  async create(data: Prisma.UserCreateInput): Promise<User> {
+    return await this.prisma.user.create({
+      data,
+      include: { authProviders: true },
+    });
   }
 
   async createWithProvider(
-    createUserDto: CreateUserDto & { provider: string },
+    createUserDto: CreateUserDto,
     data: Prisma.AuthProviderCreateWithoutUserInput,
   ) {
     return await this.prisma.user.create({
@@ -77,6 +80,18 @@ export class UsersService {
   async remove(where: Prisma.UserWhereUniqueInput): Promise<User> {
     return this.prisma.user.delete({
       where,
+    });
+  }
+
+  async addProvider(
+    userId: number,
+    data: Prisma.AuthProviderCreateWithoutUserInput,
+  ) {
+    return this.prisma.authProvider.create({
+      data: {
+        ...data,
+        userId,
+      },
     });
   }
 }
