@@ -1,11 +1,6 @@
 @baseUrl = http://localhost:3000
 
-### --------------------------------------------------
-
 ### Create user
-
-### --------------------------------------------------
-
 POST {{baseUrl}}/users/create
 Content-Type: application/json
 
@@ -15,28 +10,13 @@ Content-Type: application/json
 "last_name": "Doe"
 }
 
-### --------------------------------------------------
-
 ### Get all users
-
-### --------------------------------------------------
-
 GET {{baseUrl}}/users
 
-### --------------------------------------------------
-
 ### Get one user by id
-
-### --------------------------------------------------
-
 GET {{baseUrl}}/users/1
 
-### --------------------------------------------------
-
 ### Update user
-
-### --------------------------------------------------
-
 PATCH {{baseUrl}}/users/1
 Content-Type: application/json
 
@@ -45,10 +25,5 @@ Content-Type: application/json
 "last_name": "Doe Updated"
 }
 
-### --------------------------------------------------
-
 ### Delete user
-
-### --------------------------------------------------
-
 DELETE {{baseUrl}}/users/1
