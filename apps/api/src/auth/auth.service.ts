@@ -1,98 +1,134 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Provider } from '../../prisma/generated/prisma/client';
-import { GoogleProfile } from './interfaces/google-profile.interface';
+import { Provider } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
+    private readonly usersService: UsersService,
   ) {}
 
-  async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(12);
-    return bcrypt.hash(password, salt);
+  // ----- HELPERS -----
+
+  //Token hash before storage in DB
+  private async hashToken(token: string): Promise<string> {
+    return bcrypt.hash(token, 10);
   }
 
-  async generateToken(userId: number, userEmail: string): Promise<string> {
-    return this.jwtService.signAsync({
-      sub: userId,
-      email: userEmail,
+  // Generate an access token which expires in 15min
+  private generateAccessToken(payload: JwtPayload): Promise<string> {
+    return this.jwtService.signAsync(payload, {
+      secret: this.config.get<string>('JWT_SECRET'),
+      expiresIn: '15min',
     });
   }
 
+  // Security purpose : will return a 64 octets in token format to the client
+  private generateRawRefreshToken(): string {
+    return randomBytes(64).toString('hex');
+  }
+
+  // Let the token alive for 7 days before the expiring date
+  private getRefreshExpiry(): Date {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d;
+  }
+
+  // Send both tokens to the controller
+  private async issueTokens(userId: number, email: string) {
+    const accessToken = await this.generateAccessToken({ sub: userId, email });
+
+    const rawRefreshToken = this.generateRawRefreshToken();
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token: await this.hashToken(rawRefreshToken),
+        expires_at: this.getRefreshExpiry(),
+        userId,
+      },
+    });
+
+    return { accessToken, refreshToken: rawRefreshToken };
+  }
+
+  // ---- Public methods -----
+
+  // Used in local.strategy.ts to validate if a user exists with the local provider
+  async validateLocal(email: string, password: string) {
+    const user = await this.usersService.findOne({ email });
+    if (!user) return null;
+
+    const provider = await this.prisma.authProvider.findUnique({
+      where: {
+        userId_provider: { userId: user.id, provider: Provider.local },
+      },
+    });
+    if (!provider?.password) return null;
+
+    const isMatch = await bcrypt.compare(password, provider.password);
+    return isMatch ? user : null;
+  }
+
+  // Implements the local sign up logic
   async localRegister(
     email: string,
     password: string,
-  ): Promise<{ token: string }> {
-    const hashedPassword = await this.hashPassword(password);
+    first_name?: string,
+    last_name?: string,
+  ) {
+    const hashed = await bcrypt.hash(password, 12);
+
     const user = await this.prisma.user.create({
       data: {
         email,
+        first_name,
+        last_name,
         authProviders: {
-          create: {
-            provider: Provider.local,
-            password: hashedPassword,
-          },
+          create: { provider: Provider.local, password: hashed },
         },
       },
     });
 
-    const token = await this.generateToken(user.id, user.email);
-    return { token };
+    return this.issueTokens(user.id, user.email);
   }
 
-  async validateOAuthLogin(profile: GoogleProfile) {
-    const email = profile.emails?.[0]?.value;
-    const providerId = profile.id;
+  // As local strategy validate the user, localLogin is simple
+  async localLogin(userId: number, email: string) {
+    return this.issueTokens(userId, email);
+  }
 
-    if (!email) throw new Error('OAuth email missing');
-
-    const existingProvider = await this.prisma.authProvider.findUnique({
-      where: {
-        provider_provider_id: {
-          provider: Provider.google,
-          provider_id: providerId,
-        },
-      },
+  async refresh(rawRefreshToken: string) {
+    const tokens = await this.prisma.refreshToken.findMany({
+      where: { expires_at: { gt: new Date() } },
       include: { user: true },
     });
 
-    if (existingProvider) {
-      return {
-        token: await this.generateToken(
-          existingProvider.user.id,
-          existingProvider.user.email,
-        ),
-      };
-    }
+    const match = await Promise.all(
+      tokens.map(async (t) => ({
+        record: t,
+        valid: await bcrypt.compare(rawRefreshToken, t.token),
+      })),
+    ).then((results) => results.find((r) => r.valid));
 
-    let user = await this.prisma.user.findUnique({ where: { email } });
+    if (!match)
+      throw new UnauthorizedException('Refresh token invalide ou expiré');
 
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          email,
-          first_name: profile.name?.givenName,
-          last_name: profile.name?.familyName,
-          authProviders: {
-            create: { provider: Provider.google, provider_id: providerId },
-          },
-        },
-      });
-    } else {
-      await this.prisma.authProvider.create({
-        data: {
-          provider: Provider.google,
-          provider_id: providerId,
-          userId: user.id,
-        },
-      });
-    }
+    await this.prisma.refreshToken.delete({ where: { id: match.record.id } });
 
-    return { token: await this.generateToken(user.id, user.email) };
+    return this.issueTokens(match.record.user.id, match.record.user.email);
+  }
+
+  async logout(userId: number) {
+    await this.prisma.refreshToken.deleteMany({ where: { userId } });
   }
 }
