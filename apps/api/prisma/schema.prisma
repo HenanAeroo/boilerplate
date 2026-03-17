@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider      = "prisma-client-js"
-  output        = "./generated/prisma/client"
+  provider = "prisma-client-js"
+  output   = "./generated/prisma/client"
 }
 
 datasource db {
@@ -23,6 +17,7 @@ model User {
   modified_at DateTime @updatedAt
 
   authProviders AuthProvider[]
+  refreshTokens RefreshToken[]
 }
 
 enum Provider {
@@ -36,11 +31,22 @@ model AuthProvider {
   provider_id String?
   password    String?
 
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  created_at  DateTime @default(now())
+  created_at DateTime @default(now())
 
   @@unique([provider, provider_id])
   @@unique([userId, provider])
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  expires_at DateTime
+
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
 }
