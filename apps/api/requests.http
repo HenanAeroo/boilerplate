@@ -1,54 +1,58 @@
+### Variables
 @baseUrl = http://localhost:3000
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsImlhdCI6MTc3Mzc2MTM1MCwiZXhwIjoxNzczNzYyMjUwfQ.jV37GNSoYGkQPd2jUVZS5zd3gmtZu1ahRBAxcde3L4c
+@refreshToken = b9ee065ae48912af1e9c6e159395c1429ad310f97b82e6c4915afbb93db44389729fe0277afd38fc9d14073d266b60d80aa9aba35168233e8d93f20b29af561c
 
-### --------------------------------------------------
+### AUTH
 
-### Create user
-
-### --------------------------------------------------
-
-POST {{baseUrl}}/users/create
+### Register
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-"email": "[john.doe@example.com](mailto:john.doe@example.com)",
-"first_name": "John",
-"last_name": "Doe"
+  "email": "test@example.com",
+  "password": "password123",
+  "first_name": "John",
+  "last_name": "Doe"
 }
 
-### --------------------------------------------------
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Refresh token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+### USERS
 
 ### Get all users
-
-### --------------------------------------------------
-
 GET {{baseUrl}}/users
 
-### --------------------------------------------------
-
-### Get one user by id
-
-### --------------------------------------------------
-
-GET {{baseUrl}}/users/1
-
-### --------------------------------------------------
+### Get user by id
+GET {{baseUrl}}/users/2
 
 ### Update user
-
-### --------------------------------------------------
-
-PATCH {{baseUrl}}/users/1
+PATCH {{baseUrl}}/users/2
 Content-Type: application/json
 
 {
-"first_name": "Johnny",
-"last_name": "Doe Updated"
+  "first_name": "Jane"
 }
 
-### --------------------------------------------------
-
 ### Delete user
-
-### --------------------------------------------------
-
-DELETE {{baseUrl}}/users/1
+DELETE {{baseUrl}}/users/2

@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Post,
-} from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User as UserModel } from '../../prisma/generated/prisma/client';
@@ -14,23 +6,6 @@ import { User as UserModel } from '../../prisma/generated/prisma/client';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post('create')
-  create(
-    @Body()
-    userData: {
-      email: string;
-      first_name?: string;
-      last_name?: string;
-    },
-  ): Promise<UserModel> {
-    const { email, first_name, last_name } = userData;
-    return this.usersService.create({
-      email,
-      first_name,
-      last_name,
-    });
-  }
 
   @Get()
   findAll(): Promise<UserModel[]> {
