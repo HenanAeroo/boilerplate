@@ -5,32 +5,17 @@ import {
   Patch,
   Param,
   Delete,
-  Post,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User as UserModel } from '../../prisma/generated/prisma/client';
+import { JwtAuthGuard } from 'auth/guards/jwt-auth.guard';
 
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post('create')
-  create(
-    @Body()
-    userData: {
-      email: string;
-      first_name?: string;
-      last_name?: string;
-    },
-  ): Promise<UserModel> {
-    const { email, first_name, last_name } = userData;
-    return this.usersService.create({
-      email,
-      first_name,
-      last_name,
-    });
-  }
 
   @Get()
   findAll(): Promise<UserModel[]> {
