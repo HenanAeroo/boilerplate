@@ -1,41 +1,39 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalRegisterDto } from './dto/local-register.dto';
-import { BadRequestException } from '@nestjs/common';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() localRegisterDto: LocalRegisterDto) {
-    const email = localRegisterDto.email;
-    const password = localRegisterDto.password;
-
-    if (!email || !password) {
-      throw new BadRequestException('Email et mot de passe sont requis');
-    }
-
-    return this.authService.localRegister(email, password);
+  register(@Body() dto: LocalRegisterDto) {
+    return this.authService.localRegister(
+      dto.email,
+      dto.password,
+      dto.first_name,
+      dto.last_name,
+    );
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.authService.findAll();
-  // }
+  @Post('login')
+  @UseGuards(LocalAuthGuard)
+  login(@Req() req: any) {
+    // req.user est injecté par LocalStrategy.validate()
+    return this.authService.localLogin(req.user.id, req.user.email);
+  }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.authService.findOne(+id);
-  // }
+  @Post('refresh')
+  refresh(@Body() dto: RefreshTokenDto) {
+    return this.authService.refresh(dto.refreshToken);
+  }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() localLoginDto: LocalLoginDto) {
-  //   return this.authService.update(+id, localLoginDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.authService.remove(+id);
-  // }
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  logout(@Req() req: any) {
+    return this.authService.logout(req.user.id);
+  }
 }
