@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -87,6 +91,9 @@ export class AuthService {
     first_name?: string,
     last_name?: string,
   ) {
+    const usedEmail = await this.usersService.findOne({ email });
+    if (usedEmail) throw new ConflictException('Cet email est déjà utilisé');
+
     const hashed = await bcrypt.hash(password, 12);
 
     const user = await this.prisma.user.create({
