@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { randomBytes } from 'crypto';
+import { Profile } from 'passport-google-oauth20';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +20,7 @@ export class AuthService {
 
   // ----- HELPERS -----
 
-  //Token hash before storage in DB
+  // Token hash before storage in DB
   private async hashToken(token: string): Promise<string> {
     return bcrypt.hash(token, 10);
   }
@@ -37,7 +38,7 @@ export class AuthService {
     return randomBytes(64).toString('hex');
   }
 
-  // Let the token alive for 7 days before the expiring date
+  // Let the refreshToken alive for 7 days before the expiring date
   private getRefreshExpiry(): Date {
     const d = new Date();
     d.setDate(d.getDate() + 7);
@@ -108,17 +109,21 @@ export class AuthService {
   }
 
   async refresh(rawRefreshToken: string) {
+    // Load every tokens that is not expired (greater then now)
     const tokens = await this.prisma.refreshToken.findMany({
       where: { expires_at: { gt: new Date() } },
       include: { user: true },
     });
 
+    // Find which token corresponds to the user
     const match = await Promise.all(
+      // Create an object for each token in the DB with t = token and
+      // valid = bcrypt.compare result
       tokens.map(async (t) => ({
         record: t,
         valid: await bcrypt.compare(rawRefreshToken, t.token),
       })),
-    ).then((results) => results.find((r) => r.valid));
+    ).then((results) => results.find((r) => r.valid)); // Return the first result where valid === true
 
     if (!match)
       throw new UnauthorizedException('Refresh token invalide ou expiré');
@@ -130,5 +135,51 @@ export class AuthService {
 
   async logout(userId: number) {
     await this.prisma.refreshToken.deleteMany({ where: { userId } });
+  }
+
+  async validateOAuthLogin(profile: Profile) {
+    const email = profile.emails?.[0]?.value;
+    const providerId = profile.id;
+
+    if (!email) throw new Error('Email Google manquant');
+
+    const existing = await this.prisma.authProvider.findUnique({
+      where: {
+        provider_provider_id: {
+          provider: Provider.google,
+          provider_id: providerId,
+        },
+      },
+      include: { user: true },
+    });
+
+    if (existing) {
+      return this.issueTokens(existing.user.id, existing.user.email);
+    }
+
+    let user = await this.usersService.findOne({ email });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          first_name: profile.name?.givenName,
+          last_name: profile.name?.familyName,
+          authProviders: {
+            create: { provider: Provider.google, provider_id: providerId },
+          },
+        },
+      });
+    } else {
+      await this.prisma.authProvider.create({
+        data: {
+          provider: Provider.google,
+          provider_id: providerId,
+          userId: user.id,
+        },
+      });
+    }
+
+    return this.issueTokens(user.id, user.email);
   }
 }
