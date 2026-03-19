@@ -15,7 +15,6 @@ import { AuthTasks } from './tasks/auth.tasks';
     UsersModule,
     PassportModule,
     ConfigModule,
-    AuthTasks,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -25,7 +24,13 @@ import { AuthTasks } from './tasks/auth.tasks';
       }),
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    GoogleStrategy,
+    AuthTasks,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}
