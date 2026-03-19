@@ -1,15 +1,24 @@
 "use client";
 
+import { cn } from "@/shared/lib/utils";
 import { LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 import { useState } from "react";
 
-const Sidebar = () => {
+type SidebarProps = {
+  className?: string;
+};
+
+const Sidebar = ({ className }: SidebarProps) => {
   const [collapse, setCollapse] = useState(true);
 
   function handleLogout() {}
 
   return (
-    <div className="flex flex-col" role="complementary" aria-label="Sidebar">
+    <div
+      className={cn("flex flex-col", className)}
+      role="complementary"
+      aria-label="Sidebar"
+    >
       <nav>
         <button
           aria-expanded={!collapse}
