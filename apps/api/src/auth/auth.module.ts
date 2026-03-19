@@ -8,12 +8,14 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthTasks } from './tasks/auth.tasks';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     ConfigModule,
+    AuthTasks,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
