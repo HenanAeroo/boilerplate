@@ -12,8 +12,8 @@ export function useAuth() {
 
     try {
       await login(data);
-    } catch {
-      setError("Mauvais identifiants");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Mauvais identifiants");
     } finally {
       setIsLoading(false);
     }
@@ -25,8 +25,8 @@ export function useAuth() {
 
     try {
       await register(data);
-    } catch {
-      setError("Le formulaire n'est pas correctement rempli");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Message par défaut");
     } finally {
       setIsLoading(false);
     }
@@ -38,8 +38,10 @@ export function useAuth() {
 
     try {
       await logout();
-    } catch {
-      setError("Impossible de se déconnecter");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Impossible de se déconnecter",
+      );
     } finally {
       setIsLoading(false);
     }
