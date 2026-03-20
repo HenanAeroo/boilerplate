@@ -29,3 +29,11 @@ export async function logout(): Promise<void> {
 
   removeToken();
 }
+
+export async function refresh() {
+  const { accessToken } = await apiFetch<AuthResponse>("/auth/refresh", {
+    method: "POST",
+  });
+
+  setToken(accessToken);
+}

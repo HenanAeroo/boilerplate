@@ -5,7 +5,7 @@ import React from "react";
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-col md:flex-row h-screen">
-      <Sidebar className="hidden md:block" />
+      <Sidebar className="hidden md:block w-16" />
       <div className="flex flex-col flex-1">
         <Header />
         <main className="flex-1 overflow-auto">{children}</main>

@@ -16,15 +16,20 @@ const Sidebar = ({ className }: SidebarProps) => {
 
   return (
     <div
-      className={cn("flex flex-col", className)}
+      className={cn(
+        "flex flex-col justify-between h-screen transition-all duration-300",
+        collapse ? "w-16" : "w-60",
+        className,
+      )}
       role="complementary"
       aria-label="Sidebar"
     >
-      <nav>
+      <nav className="flex flex-col gap-2 p-2">
         <button
           aria-expanded={!collapse}
           aria-label="Toggle Button"
           onClick={() => setCollapse(!collapse)}
+          className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
         >
           {!collapse && <PanelLeftClose />}
           {collapse && <PanelLeftOpen />}
@@ -32,11 +37,19 @@ const Sidebar = ({ className }: SidebarProps) => {
         {!collapse && <span>Boilerplate</span>}
       </nav>
       <footer>
-        <a href="/profile" aria-label="Profil">
+        <a
+          href="/profile"
+          aria-label="Profil"
+          className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
+        >
           <User />
           {!collapse && <p>Profil</p>}
         </a>
-        <button aria-label="Déconnexion" onClick={handleLogout}>
+        <button
+          aria-label="Déconnexion"
+          onClick={() => handleLogout()}
+          className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
+        >
           <LogOut />
           {!collapse && <p>Déconnexion</p>}
         </button>
