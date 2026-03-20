@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { login, register, logout } from "../actions/auth.actions";
 import { LoginFormData, RegisterFormData } from "../types";
+import { useRouter } from "next/navigation";
 
 export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleLogin(data: LoginFormData) {
     setIsLoading(true);
@@ -12,6 +14,7 @@ export function useAuth() {
 
     try {
       await login(data);
+      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Mauvais identifiants");
     } finally {
@@ -25,8 +28,11 @@ export function useAuth() {
 
     try {
       await register(data);
+      router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Message par défaut");
+      setError(
+        err instanceof Error ? err.message : "Problème lors de l'inscription",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -38,6 +44,7 @@ export function useAuth() {
 
     try {
       await logout();
+      router.push("/login");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Impossible de se déconnecter",

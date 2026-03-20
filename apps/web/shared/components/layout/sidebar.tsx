@@ -3,6 +3,7 @@
 import { cn } from "@/shared/lib/utils";
 import { LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 
 type SidebarProps = {
   className?: string;
@@ -11,7 +12,7 @@ type SidebarProps = {
 const Sidebar = ({ className }: SidebarProps) => {
   const [collapse, setCollapse] = useState(true);
 
-  function handleLogout() {}
+  const { handleLogout } = useAuth();
 
   return (
     <div
