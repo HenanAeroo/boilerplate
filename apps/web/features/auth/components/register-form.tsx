@@ -42,7 +42,7 @@ const RegisterForm = () => {
         <FieldError errors={[form.formState.errors.email]} />
       </Field>
       <Field>
-        <FieldLabel>Mot de pass</FieldLabel>
+        <FieldLabel>Mot de passe</FieldLabel>
         <Input {...form.register("password")} type="password" />
         <FieldError errors={[form.formState.errors.password]} />
       </Field>
@@ -58,8 +58,10 @@ const RegisterForm = () => {
       </Field>
       {error && <p>{error}</p>}
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Chargement..." : "Se connecter"}
+        {isLoading ? "Chargement..." : "S'inscrire"}
       </Button>
     </form>
   );
 };
+
+export default RegisterForm;
