@@ -24,7 +24,7 @@ const LoginForm = () => {
     },
   });
 
-  const { handleLogin, isLoading, error } = useAuth();
+  const { handleLogin, loginWithGoogle, isLoading, error } = useAuth();
 
   async function onSubmit(data: LoginSchema) {
     await handleLogin(data);
@@ -45,6 +45,10 @@ const LoginForm = () => {
       {error && <p>{error}</p>}
       <Button type="submit" disabled={isLoading}>
         {isLoading ? "Chargement..." : "Se connecter"}
+      </Button>
+      <p>ou</p>
+      <Button type="button" onClick={() => loginWithGoogle()}>
+        Se connecter avec Google
       </Button>
     </form>
   );

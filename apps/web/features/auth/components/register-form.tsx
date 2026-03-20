@@ -28,7 +28,7 @@ const RegisterForm = () => {
     },
   });
 
-  const { handleRegister, isLoading, error } = useAuth();
+  const { handleRegister, loginWithGoogle, isLoading, error } = useAuth();
 
   async function onSubmit(data: RegisterSchema) {
     await handleRegister(data);
@@ -59,6 +59,10 @@ const RegisterForm = () => {
       {error && <p>{error}</p>}
       <Button type="submit" disabled={isLoading}>
         {isLoading ? "Chargement..." : "S'inscrire"}
+      </Button>
+      <p>ou</p>
+      <Button type="button" onClick={() => loginWithGoogle()}>
+        S`&apos;`inscrire avec Google
       </Button>
     </form>
   );

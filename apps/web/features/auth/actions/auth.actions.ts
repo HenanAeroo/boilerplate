@@ -37,3 +37,7 @@ export async function refresh() {
 
   setToken(accessToken);
 }
+
+export function loginWithGoogle() {
+  window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+}

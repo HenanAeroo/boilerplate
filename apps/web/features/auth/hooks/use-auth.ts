@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { login, register, logout } from "../actions/auth.actions";
+import {
+  login,
+  register,
+  logout,
+  loginWithGoogle,
+} from "../actions/auth.actions";
 import { LoginFormData, RegisterFormData } from "../types";
 import { useRouter } from "next/navigation";
 
@@ -54,5 +59,12 @@ export function useAuth() {
     }
   }
 
-  return { handleLogin, handleRegister, handleLogout, isLoading, error };
+  return {
+    handleLogin,
+    handleRegister,
+    handleLogout,
+    loginWithGoogle,
+    isLoading,
+    error,
+  };
 }
