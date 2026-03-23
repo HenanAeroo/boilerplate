@@ -5,7 +5,7 @@ export const config = {
   matcher: ["/dashboard/:path*", "/login", "/register"],
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const token = request.cookies.get("refreshToken")?.value;
 
   if (!token && request.nextUrl.pathname.startsWith("/dashboard")) {
@@ -19,3 +19,5 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 }
+
+export default proxy;
