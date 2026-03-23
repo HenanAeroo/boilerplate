@@ -50,8 +50,16 @@ export class AuthService {
   }
 
   // Send both tokens to the controller
-  private async issueTokens(userId: number, email: string) {
-    const accessToken = await this.generateAccessToken({ sub: userId, email });
+  private async issueTokens(
+    userId: number,
+    email: string,
+    first_name: string | null,
+  ) {
+    const accessToken = await this.generateAccessToken({
+      sub: userId,
+      email,
+      first_name,
+    });
 
     const rawRefreshToken = this.generateRawRefreshToken();
 
@@ -107,12 +115,12 @@ export class AuthService {
       },
     });
 
-    return this.issueTokens(user.id, user.email);
+    return this.issueTokens(user.id, user.email, user.first_name);
   }
 
   // As local strategy validate the user, localLogin is simple
-  async localLogin(userId: number, email: string) {
-    return this.issueTokens(userId, email);
+  async localLogin(userId: number, email: string, first_name: string | null) {
+    return this.issueTokens(userId, email, first_name);
   }
 
   async refresh(rawRefreshToken: string) {
@@ -137,7 +145,11 @@ export class AuthService {
 
     await this.prisma.refreshToken.delete({ where: { id: match.record.id } });
 
-    return this.issueTokens(match.record.user.id, match.record.user.email);
+    return this.issueTokens(
+      match.record.user.id,
+      match.record.user.email,
+      match.record.user.first_name,
+    );
   }
 
   async logout(userId: number) {
@@ -161,7 +173,11 @@ export class AuthService {
     });
 
     if (existing) {
-      return this.issueTokens(existing.user.id, existing.user.email);
+      return this.issueTokens(
+        existing.user.id,
+        existing.user.email,
+        existing.user.first_name,
+      );
     }
 
     let user = await this.usersService.findOne({ email });
@@ -187,6 +203,6 @@ export class AuthService {
       });
     }
 
-    return this.issueTokens(user.id, user.email);
+    return this.issueTokens(user.id, user.email, user.first_name);
   }
 }

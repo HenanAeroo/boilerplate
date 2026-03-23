@@ -6,3 +6,9 @@ export type ApiError = {
 export type AuthResponse = {
   accessToken: string;
 };
+
+export type JwtPayload = {
+  sub: number;
+  email: string;
+  first_name: string | null;
+};

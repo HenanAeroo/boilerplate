@@ -47,6 +47,7 @@ export class AuthController {
     const { accessToken, refreshToken } = await this.authService.localLogin(
       user.sub,
       user.email,
+      user.first_name,
     );
 
     res.cookie('refreshToken', refreshToken, {
