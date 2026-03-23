@@ -22,7 +22,7 @@ type SidebarProps = {
   className?: string;
 };
 
-const Sidebar = ({ className }: SidebarProps) => {
+const Sidebar = () => {
   const [collapse, setCollapse] = useState(true);
 
   const { handleLogout } = useAuth();
@@ -33,9 +33,8 @@ const Sidebar = ({ className }: SidebarProps) => {
   return (
     <div
       className={cn(
-        "flex flex-col justify-between h-screen transition-all duration-300",
+        "flex flex-col justify-between h-screen transition-all duration-300 bg-sidebar shrink-0",
         collapse ? "w-16" : "w-60",
-        className,
       )}
       role="complementary"
       aria-label="Sidebar"
@@ -50,7 +49,7 @@ const Sidebar = ({ className }: SidebarProps) => {
           {!collapse && <PanelLeftClose />}
           {collapse && <PanelLeftOpen />}
         </button>
-        {!collapse && <span>Boilerplate</span>}
+        {!collapse}
         {navLinks.map((link) => (
           <TooltipProvider key={link.href}>
             <Tooltip>
@@ -75,7 +74,7 @@ const Sidebar = ({ className }: SidebarProps) => {
           </TooltipProvider>
         ))}
       </nav>
-      <footer>
+      <footer className="flex flex-col gap-2 p-2">
         <a
           href="/profile"
           aria-label="Profil"
