@@ -19,7 +19,7 @@ export function useAuth() {
 
     try {
       await login(data);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Mauvais identifiants");
     } finally {
@@ -33,7 +33,7 @@ export function useAuth() {
 
     try {
       await register(data);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Problème lors de l'inscription",

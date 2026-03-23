@@ -13,7 +13,7 @@ const GoogleCallbackPage = () => {
 
     if (token) {
       setToken(token);
-      router.push("/dashboard");
+      router.push("/");
     } else {
       router.push("/login");
     }

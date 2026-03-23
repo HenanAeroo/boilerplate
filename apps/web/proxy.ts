@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/register"],
+  matcher: ["/", "/login", "/register", "/oauth/:path*"],
 };
 
 export function proxy(request: NextRequest) {
   const token = request.cookies.get("refreshToken")?.value;
 
-  if (!token && request.nextUrl.pathname.startsWith("/dashboard")) {
+  if (!token && request.nextUrl.pathname === "/") {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -16,7 +16,7 @@ export function proxy(request: NextRequest) {
     (token && request.nextUrl.pathname == "/login") ||
     (token && request.nextUrl.pathname == "/register")
   ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 }
 
