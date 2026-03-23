@@ -17,10 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-
-type SidebarProps = {
-  className?: string;
-};
+import { getUser } from "@/shared/lib/auth";
 
 const Sidebar = () => {
   const [collapse, setCollapse] = useState(true);
@@ -29,6 +26,13 @@ const Sidebar = () => {
 
   const pathName = usePathname();
   const navLinks = [{ href: "/", label: "Dashboard", icon: LayoutDashboard }];
+
+  const segment = pathName.split("/").at(-1);
+  const pageTitle = segment
+    ? segment.charAt(0).toUpperCase() + segment.slice(1)
+    : "Home";
+
+  const user = getUser();
 
   return (
     <div
@@ -49,7 +53,11 @@ const Sidebar = () => {
           {!collapse && <PanelLeftClose />}
           {collapse && <PanelLeftOpen />}
         </button>
-        {!collapse}
+        {!collapse && (
+          <h2 className="whitespace-nowrap overflow-hidden px-2 text-m">
+            Bonjour {user?.first_name} !
+          </h2>
+        )}
         {navLinks.map((link) => (
           <TooltipProvider key={link.href}>
             <Tooltip>
