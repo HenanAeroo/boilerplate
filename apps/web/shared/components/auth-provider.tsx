@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    refresh();
+    refresh().catch(() => {});
   }, []);
 
   return children;
