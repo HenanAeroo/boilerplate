@@ -1,9 +1,22 @@
 "use client";
 
 import { cn } from "@/shared/lib/utils";
-import { LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { usePathname } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 
 type SidebarProps = {
   className?: string;
@@ -13,6 +26,9 @@ const Sidebar = ({ className }: SidebarProps) => {
   const [collapse, setCollapse] = useState(true);
 
   const { handleLogout } = useAuth();
+
+  const pathName = usePathname();
+  const navLinks = [{ href: "/", label: "Dashboard", icon: LayoutDashboard }];
 
   return (
     <div
@@ -35,6 +51,29 @@ const Sidebar = ({ className }: SidebarProps) => {
           {collapse && <PanelLeftOpen />}
         </button>
         {!collapse && <span>Boilerplate</span>}
+        {navLinks.map((link) => (
+          <TooltipProvider key={link.href}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-3 p-2 rounded-md w-full",
+                    pathName === link.href
+                      ? "text-white bg-neutral-800"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-800",
+                  )}
+                >
+                  <link.icon />
+                  {!collapse && <span>{link.label}</span>}
+                </a>
+              </TooltipTrigger>
+              {collapse && (
+                <TooltipContent side="right">{link.label}</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+        ))}
       </nav>
       <footer>
         <a
