@@ -43,13 +43,16 @@ const LoginForm = () => {
         <FieldError errors={[form.formState.errors.password]} />
       </Field>
       {error && <p>{error}</p>}
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Chargement..." : "Se connecter"}
-      </Button>
-      <p>ou</p>
-      <Button type="button" onClick={() => loginWithGoogle()}>
-        Se connecter avec Google
-      </Button>
+
+      <div className="flex items-center mt-5">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Chargement..." : "Se connecter"}
+        </Button>
+        <p>ou</p>
+        <Button type="button" onClick={() => loginWithGoogle()}>
+          Se connecter avec Google
+        </Button>
+      </div>
     </form>
   );
 };

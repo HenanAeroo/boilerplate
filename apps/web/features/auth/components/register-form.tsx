@@ -57,13 +57,16 @@ const RegisterForm = () => {
         <FieldError errors={[form.formState.errors.last_name]} />
       </Field>
       {error && <p>{error}</p>}
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Chargement..." : "S'inscrire"}
-      </Button>
-      <p>ou</p>
-      <Button type="button" onClick={() => loginWithGoogle()}>
-        S`&apos;`inscrire avec Google
-      </Button>
+
+      <div className="flex items-center mt-5">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Chargement..." : "S'inscrire"}
+        </Button>
+        <p>ou</p>
+        <Button type="button" onClick={() => loginWithGoogle()}>
+          S&apos;inscrire avec Google
+        </Button>
+      </div>
     </form>
   );
 };
