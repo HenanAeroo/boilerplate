@@ -36,6 +36,7 @@ const RegisterForm = () => {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
+      <h2>S&apos;inscrire</h2>
       <Field>
         <FieldLabel>Email</FieldLabel>
         <Input {...form.register("email")} type="email" />

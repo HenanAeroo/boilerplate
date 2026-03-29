@@ -32,6 +32,7 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)}>
+      <h2>Se connecter</h2>
       <Field>
         <FieldLabel>Email</FieldLabel>
         <Input {...form.register("email")} type="email" />
