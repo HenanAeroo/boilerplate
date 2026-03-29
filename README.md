@@ -71,12 +71,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ## Lancer le projet
 
 ```bash
-# Backend
-cd apps/api
-pnpm start:dev
-
-# Frontend (dans un autre terminal)
-cd apps/web
+# A la racine
 pnpm dev
 ```
 
