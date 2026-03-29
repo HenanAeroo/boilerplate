@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 
 export const config = {
-  matcher: ["/", "/login", "/register", "/oauth/:path*"],
+  matcher: ["/", "/login", "/oauth/:path*"],
 };
 
 export function proxy(request: NextRequest) {
@@ -12,10 +12,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (
-    (token && request.nextUrl.pathname == "/login") ||
-    (token && request.nextUrl.pathname == "/register")
-  ) {
+  if (token && request.nextUrl.pathname == "/login") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 }
