@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { getUser } from "@/shared/lib/auth";
+import { ModeToggle } from "../theme-toggle";
 
 const Sidebar = () => {
   const [collapse, setCollapse] = useState(true);
@@ -99,6 +100,7 @@ const Sidebar = () => {
           <LogOut />
           {!collapse && <p>Déconnexion</p>}
         </button>
+        <ModeToggle collapse={collapse} />
       </footer>
     </div>
   );
