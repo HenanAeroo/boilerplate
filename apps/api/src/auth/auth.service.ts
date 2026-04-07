@@ -10,7 +10,7 @@ import { Provider } from '../../prisma/generated/prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { Profile } from 'passport-google-oauth20';
 
 @Injectable()
@@ -24,9 +24,9 @@ export class AuthService {
 
   // ----- HELPERS -----
 
-  // Token hash before storage in DB
-  private async hashToken(token: string): Promise<string> {
-    return bcrypt.hash(token, 10);
+  // SHA-256 hash for DB storage and lookup — the 64-byte random token provides the entropy
+  private hashTokenForStorage(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   // Generate an access token which expires in 15min
@@ -65,7 +65,7 @@ export class AuthService {
 
     await this.prisma.refreshToken.create({
       data: {
-        token: await this.hashToken(rawRefreshToken),
+        token: this.hashTokenForStorage(rawRefreshToken),
         expires_at: this.getRefreshExpiry(),
         userId,
       },
@@ -124,32 +124,17 @@ export class AuthService {
   }
 
   async refresh(rawRefreshToken: string) {
-    // Load every tokens that is not expired (greater then now)
-    const tokens = await this.prisma.refreshToken.findMany({
-      where: { expires_at: { gt: new Date() } },
+    const record = await this.prisma.refreshToken.findUnique({
+      where: { token: this.hashTokenForStorage(rawRefreshToken) },
       include: { user: true },
     });
 
-    // Find which token corresponds to the user
-    const match = await Promise.all(
-      // Create an object for each token in the DB with t = token and
-      // valid = bcrypt.compare result
-      tokens.map(async (t) => ({
-        record: t,
-        valid: await bcrypt.compare(rawRefreshToken, t.token),
-      })),
-    ).then((results) => results.find((r) => r.valid)); // Return the first result where valid === true
-
-    if (!match)
+    if (!record || record.expires_at < new Date())
       throw new UnauthorizedException('Refresh token invalide ou expiré');
 
-    await this.prisma.refreshToken.delete({ where: { id: match.record.id } });
+    await this.prisma.refreshToken.delete({ where: { id: record.id } });
 
-    return this.issueTokens(
-      match.record.user.id,
-      match.record.user.email,
-      match.record.user.first_name,
-    );
+    return this.issueTokens(record.user.id, record.user.email, record.user.first_name);
   }
 
   async logout(userId: number) {
