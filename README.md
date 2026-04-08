@@ -147,7 +147,39 @@ apps/web/
 
 ## Protection des routes
 
-Le fichier `proxy.ts` protège les routes :
+Le fichier `middleware.ts` protège les routes :
 
 - `/` → redirige vers `/login` si non connecté
 - `/login` → redirige vers `/` si déjà connecté
+
+---
+
+## Tests
+
+```bash
+# Backend (depuis apps/api ou racine)
+pnpm test:api
+
+# Frontend (depuis apps/web ou racine)
+pnpm test:web
+```
+
+- Backend : Jest, tests unitaires dans `src/**/*.spec.ts`
+- Frontend : Vitest + Testing Library
+
+---
+
+## CI/CD
+
+GitHub Actions déclenché sur chaque push et PR vers `master` :
+
+- `test-api` — génère le client Prisma puis lance les tests Jest
+- `test-web` — lance les tests Vitest
+
+---
+
+## Features
+
+- Dark mode (next-themes) — toggle dans la sidebar
+- Rate limiting — 100 req/60s global, 10 req/60s sur les routes auth
+- Validation des variables d'environnement au démarrage (Joi)
