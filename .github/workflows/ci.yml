@@ -16,6 +16,7 @@ jobs:
           node-version: 20
       - uses: pnpm/action-setup@v4
       - run: pnpm install
+      - run: pnpm --filter api exec npx prisma generate
       - run: pnpm test:api
   test-web:
     runs-on: ubuntu-latest
