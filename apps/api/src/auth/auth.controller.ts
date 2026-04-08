@@ -17,6 +17,8 @@ import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { Throttle } from '@nestjs/throttler';
 
+const REFRESH_TOKEN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
 @Throttle({ default: { ttl: 60000, limit: 10 } })
 @Controller('auth')
 export class AuthController {
@@ -25,18 +27,13 @@ export class AuthController {
   // ----- LOCAL METHODS -----
   @Post('register')
   async register(@Body() dto: LocalRegisterDto, @Res() res: any) {
-    const { accessToken, refreshToken } = await this.authService.localRegister(
-      dto.email,
-      dto.password,
-      dto.first_name,
-      dto.last_name,
-    );
+    const { accessToken, refreshToken } = await this.authService.localRegister(dto);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: REFRESH_TOKEN_MAX_AGE_MS,
     });
 
     return res.json({ accessToken });
@@ -46,17 +43,13 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   async login(@CurrentUser() user: JwtPayload, @Res() res: any) {
     // req.user est injecté par LocalStrategy.validate()
-    const { accessToken, refreshToken } = await this.authService.localLogin(
-      user.sub,
-      user.email,
-      user.first_name,
-    );
+    const { accessToken, refreshToken } = await this.authService.localLogin(user);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: REFRESH_TOKEN_MAX_AGE_MS,
     });
 
     return res.json({ accessToken });
@@ -73,7 +66,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: REFRESH_TOKEN_MAX_AGE_MS,
     });
 
     return res.json({ accessToken });
@@ -101,7 +94,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: REFRESH_TOKEN_MAX_AGE_MS,
     });
 
     return await res.redirect(`${process.env.FRONT_URL}/oauth/callback`);

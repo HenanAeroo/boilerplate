@@ -10,6 +10,7 @@ import { Provider } from '../../prisma/generated/prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { LocalRegisterDto } from './dto/local-register.dto';
 import { randomBytes, createHash } from 'crypto';
 import { Profile } from 'passport-google-oauth20';
 
@@ -93,22 +94,17 @@ export class AuthService {
   }
 
   // Implements the local sign up logic
-  async localRegister(
-    email: string,
-    password: string,
-    first_name?: string,
-    last_name?: string,
-  ) {
-    const usedEmail = await this.usersService.findOne({ email });
+  async localRegister(dto: LocalRegisterDto) {
+    const usedEmail = await this.usersService.findOne({ email: dto.email });
     if (usedEmail) throw new ConflictException('Cet email est déjà utilisé');
 
-    const hashed = await bcrypt.hash(password, 12);
+    const hashed = await bcrypt.hash(dto.password, 12);
 
     const user = await this.prisma.user.create({
       data: {
-        email,
-        first_name,
-        last_name,
+        email: dto.email,
+        first_name: dto.first_name,
+        last_name: dto.last_name,
         authProviders: {
           create: { provider: Provider.local, password: hashed },
         },
@@ -119,8 +115,8 @@ export class AuthService {
   }
 
   // As local strategy validate the user, localLogin is simple
-  async localLogin(userId: number, email: string, first_name: string | null) {
-    return this.issueTokens(userId, email, first_name);
+  async localLogin(payload: JwtPayload) {
+    return this.issueTokens(payload.sub, payload.email, payload.first_name);
   }
 
   async refresh(rawRefreshToken: string) {
