@@ -87,12 +87,17 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t)s$": "ts-jest"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^prisma/(.*)$": "<rootDir>/prisma/$1",
+      "^auth/(.*)$": "<rootDir>/auth/$1",
+      "^users/(.*)$": "<rootDir>/users/$1"
+    }
   }
 }
