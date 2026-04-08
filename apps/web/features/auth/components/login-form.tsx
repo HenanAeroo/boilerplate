@@ -34,8 +34,8 @@ const LoginForm = () => {
     <form onSubmit={form.handleSubmit(onSubmit)}>
       <h2>Se connecter</h2>
       <Field>
-        <FieldLabel>Email</FieldLabel>
-        <Input {...form.register("email")} type="email" />
+        <FieldLabel htmlFor="email">Email</FieldLabel>
+        <Input {...form.register("email")} type="email" id="email" />
         <FieldError errors={[form.formState.errors.email]} />
       </Field>
       <Field>
