@@ -78,7 +78,6 @@ The `datasource url` is not in `schema.prisma` — it's defined in `prisma.confi
 ```
 DATABASE_URL=postgresql://user:password@localhost:5432/boilerplate
 JWT_SECRET=
-JWT_REFRESH_SECRET=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_CALLBACK_URL=http://localhost:3001/auth/google/callback
