@@ -16,18 +16,23 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { Throttle } from '@nestjs/throttler';
+import { ConfigService } from '@nestjs/config';
 
 const REFRESH_TOKEN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 @Throttle({ default: { ttl: 60000, limit: 10 } })
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   // ----- LOCAL METHODS -----
   @Post('register')
   async register(@Body() dto: LocalRegisterDto, @Res() res: any) {
-    const { accessToken, refreshToken } = await this.authService.localRegister(dto);
+    const { accessToken, refreshToken } =
+      await this.authService.localRegister(dto);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -43,7 +48,8 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   async login(@CurrentUser() user: JwtPayload, @Res() res: any) {
     // req.user est injecté par LocalStrategy.validate()
-    const { accessToken, refreshToken } = await this.authService.localLogin(user);
+    const { accessToken, refreshToken } =
+      await this.authService.localLogin(user);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -97,6 +103,8 @@ export class AuthController {
       maxAge: REFRESH_TOKEN_MAX_AGE_MS,
     });
 
-    return await res.redirect(`${process.env.FRONT_URL}/oauth/callback`);
+    return await res.redirect(
+      `${this.configService.get('FRONT_URL')}/oauth/callback`,
+    );
   }
 }
