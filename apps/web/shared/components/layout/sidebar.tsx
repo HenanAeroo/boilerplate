@@ -3,6 +3,7 @@
 import { cn } from "@/shared/lib/utils";
 import {
   LayoutDashboard,
+  LogIn,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
@@ -84,22 +85,35 @@ const Sidebar = () => {
         ))}
       </nav>
       <footer className="flex flex-col gap-2 p-2">
-        <a
-          href="/profile"
-          aria-label="Profil"
-          className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
-        >
-          <User />
-          {!collapse && <p>Profil</p>}
-        </a>
-        <button
-          aria-label="Déconnexion"
-          onClick={() => handleLogout()}
-          className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
-        >
-          <LogOut />
-          {!collapse && <p>Déconnexion</p>}
-        </button>
+        {user ? (
+          <>
+            <a
+              href="/profile"
+              aria-label="Profil"
+              className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
+            >
+              <User />
+              {!collapse && <p>Profil</p>}
+            </a>
+            <button
+              aria-label="Déconnexion"
+              onClick={() => handleLogout()}
+              className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
+            >
+              <LogOut />
+              {!collapse && <p>Déconnexion</p>}
+            </button>
+          </>
+        ) : (
+          <a
+            aria-label="Connexion"
+            href="/login"
+            className="flex items-center gap-3 p-2 rounded-md text-neutral-400 hover:text-white hover:bg-neutral-800 w-full"
+          >
+            <LogIn />
+            {!collapse && <p>Se connecter</p>}
+          </a>
+        )}
         <ModeToggle collapse={collapse} />
       </footer>
     </div>
