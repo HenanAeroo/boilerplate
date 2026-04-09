@@ -29,11 +29,6 @@ const Sidebar = () => {
   const pathName = usePathname();
   const navLinks = [{ href: "/", label: "Dashboard", icon: LayoutDashboard }];
 
-  const segment = pathName.split("/").at(-1);
-  const pageTitle = segment
-    ? segment.charAt(0).toUpperCase() + segment.slice(1)
-    : "Home";
-
   const user = getUser();
 
   return (
