@@ -82,7 +82,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async logout(@CurrentUser() user: JwtPayload, @Res() res: any) {
     await this.authService.logout(user.sub);
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
     return res.json({ message: 'Déconnecté' });
   }
 

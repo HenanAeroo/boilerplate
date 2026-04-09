@@ -120,17 +120,24 @@ export class AuthService {
   }
 
   async refresh(rawRefreshToken: string) {
-    const record = await this.prisma.refreshToken.findUnique({
-      where: { token: this.hashTokenForStorage(rawRefreshToken) },
-      include: { user: true },
-    });
+    let record;
+    try {
+      record = await this.prisma.refreshToken.delete({
+        where: { token: this.hashTokenForStorage(rawRefreshToken) },
+        include: { user: true },
+      });
+    } catch {
+      throw new UnauthorizedException('Refresh token invalide ou expiré');
+    }
 
-    if (!record || record.expires_at < new Date())
+    if (record.expires_at < new Date())
       throw new UnauthorizedException('Refresh token invalide ou expiré');
 
-    await this.prisma.refreshToken.delete({ where: { id: record.id } });
-
-    return this.issueTokens(record.user.id, record.user.email, record.user.first_name);
+    return this.issueTokens(
+      record.user.id,
+      record.user.email,
+      record.user.first_name,
+    );
   }
 
   async logout(userId: number) {
