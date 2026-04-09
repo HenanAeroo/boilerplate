@@ -6,7 +6,7 @@ import Sidebar from "./layout/sidebar";
 
 const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
-  const publicRoutes = ["/login", "/register", "/oauth/callback"];
+  const publicRoutes = ["/login", "/register", "/oauth/callback", "/forgot-password", "/reset-password"];
 
   const isPublic = publicRoutes.includes(pathname);
 
