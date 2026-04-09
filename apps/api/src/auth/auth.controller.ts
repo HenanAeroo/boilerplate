@@ -98,7 +98,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleCallback(@Req() req: any, @Res() res: any) {
-    const { accessToken, refreshToken } = req.user;
+    const { refreshToken } = req.user;
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
