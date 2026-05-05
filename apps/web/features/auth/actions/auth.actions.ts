@@ -38,6 +38,13 @@ export async function refresh() {
   setToken(accessToken);
 }
 
+export async function forgotPassword(email: string): Promise<void> {
+  await apiFetch('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
 export function loginWithGoogle() {
   window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
 }

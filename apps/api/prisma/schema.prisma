@@ -8,16 +8,17 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  email       String   @unique @db.VarChar(255)
-  first_name  String?
-  last_name   String?
+  id         Int     @id @default(autoincrement())
+  email      String  @unique @db.VarChar(255)
+  first_name String?
+  last_name  String?
 
   created_at  DateTime @default(now())
   modified_at DateTime @updatedAt
 
-  authProviders AuthProvider[]
-  refreshTokens RefreshToken[]
+  authProviders       AuthProvider[]
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 enum Provider {
@@ -31,8 +32,8 @@ model AuthProvider {
   provider_id String?
   password    String?
 
-  userId     Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   created_at DateTime @default(now())
 
@@ -45,8 +46,17 @@ model RefreshToken {
   token      String   @unique
   expires_at DateTime
 
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  expires_at DateTime
   userId     Int
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   created_at DateTime @default(now())
 }

@@ -13,6 +13,7 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { LocalRegisterDto } from './dto/local-register.dto';
 import { randomBytes, createHash } from 'crypto';
 import { Profile } from 'passport-google-oauth20';
+import { Resend } from 'resend';
 
 @Injectable()
 export class AuthService {
@@ -192,5 +193,61 @@ export class AuthService {
     }
 
     return this.issueTokens(user.id, user.email, user.first_name);
+  }
+
+  private getResetExpiry(): Date {
+    const d = new Date();
+    d.setDate(d.getHours() + 1);
+    return d;
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findOne({ email });
+    if (!user) return;
+
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    const rawToken = this.generateRawRefreshToken();
+
+    await this.prisma.passwordResetToken.create({
+      data: {
+        token: this.hashTokenForStorage(rawToken),
+        expires_at: this.getResetExpiry(),
+        userId: user.id,
+      },
+    });
+
+    const resend = new Resend(this.config.getOrThrow('RESEND_API_KEY'));
+
+    await resend.emails.send({
+      from: this.config.getOrThrow('RESEND_FROM_EMAIL'),
+      to: user.email,
+      subject: 'Réinitialisation de mot de passe',
+      html: `<p>Cliquez <a href="${this.config.getOrThrow('FRONT_URL')}/reset-password?token=${rawToken}">ici</a> pour réinitialiser votre mot de passe. Lien valable 1h.</p>`,
+    });
+  }
+
+  async resetPassword(token: string, password: string) {
+    let record;
+    try {
+      record = await this.prisma.passwordResetToken.delete({
+        where: { token: this.hashTokenForStorage(token) },
+        include: { user: true },
+      });
+    } catch {
+      throw new UnauthorizedException('Refresh token invalide ou expiré');
+    }
+
+    if (record.expires_at < new Date())
+      throw new UnauthorizedException('Refresh token invalide ou expiré');
+
+    const hashed = await bcrypt.hash(password, 12);
+
+    await this.prisma.authProvider.updateMany({
+      where: { userId: record.userId, provider: Provider.local },
+      data: { password: hashed },
+    });
   }
 }

@@ -45,6 +45,15 @@ const LoginForm = () => {
       </Field>
       {error && <p>{error}</p>}
 
+      <div className="flex justify-end mt-1">
+        <a
+          href="/forgot-password"
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          Mot de passe oublié ?
+        </a>
+      </div>
+
       <div className="flex items-center mt-5">
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Chargement..." : "Se connecter"}
